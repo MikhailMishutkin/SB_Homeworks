@@ -2,4 +2,8 @@ module example.com/m/v2
 
 go 1.16
 
-require github.com/google/gxui v0.0.0-20151028112939-f85e0a97b3a4 // indirect
+require (
+	github.com/Quasilyte/concat v0.0.0-20180717223007-181498035785 // indirect
+	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible // indirect
+	github.com/go-ozzo/ozzo-validation/v4 v4.3.0 // indirect
+)

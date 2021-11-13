@@ -7,8 +7,8 @@ import (
 )
 
 func main() {
-	file, err := os.Create("some.txt")
-	if err := os.Chmod("some.txt", 0444); err != nil {
+	file, err := os.Create("t.txt")
+	if err := os.Chmod("t.txt", 0666); err != nil {
 		fmt.Println(err)
 	}
 	writer := bufio.NewWriter(file)
@@ -18,7 +18,7 @@ func main() {
 	}
 	defer file.Close()
 
-	writer.WriteString("Say hi")
+	writer.WriteString("Say hfsd")
 	writer.WriteString("\n")
 	writer.WriteRune('a')
 	writer.WriteString("\n")
@@ -26,5 +26,5 @@ func main() {
 	writer.WriteString("\n")
 	writer.Write([]byte{65, 66, 67}) //A, B, C
 	writer.WriteString("\n")
-	writer.Flush()
+	//writer.Flush()
 }
