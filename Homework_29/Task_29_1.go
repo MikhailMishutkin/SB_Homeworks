@@ -26,18 +26,25 @@ import (
 
 func main() {
 	input := bufio.NewScanner(os.Stdin)
-	// канал куда передаём умноженное на два
 
+	fmt.Println("Введите число")
 	for input.Scan() {
+		if input.Text() == "стоп" {
+			break
+		} else {
+			fmt.Println("Ввод", input.Text())
+			mS := makeSquare(input.Text()) //канал для  квадрата числа в горутине
+			fmt.Println("Квадрат: ", mS)
+			d := double(mS) // канал куда передаём умноженное на два
+			fmt.Println("Произведение:", d)
+		}
+
 		fmt.Println("Введите число")
-		mS := makeSquare(input.Text()) //канал для  квадрата числа в горутине
-		d := double(<-mS)
-		fmt.Println(d)
 	}
 
 }
 
-func makeSquare(input string) chan int {
+func makeSquare(input string) int {
 	fC := make(chan int)
 
 	go func() {
@@ -48,7 +55,7 @@ func makeSquare(input string) chan int {
 		a = a * a
 		fC <- a
 	}()
-	return fC
+	return <-fC
 }
 
 func double(fC int) int {
