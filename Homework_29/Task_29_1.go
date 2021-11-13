@@ -17,13 +17,45 @@
 
 package main
 
-import "fmt"
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"strconv"
+)
 
 func main() {
 	input := bufio.NewScanner(os.Stdin)
+	// канал куда передаём умноженное на два
 
-	for {
+	for input.Scan() {
 		fmt.Println("Введите число")
-
+		mS := makeSquare(input.Text()) //канал для  квадрата числа в горутине
+		d := double(<-mS)
+		fmt.Println(d)
 	}
+
+}
+
+func makeSquare(input string) chan int {
+	fC := make(chan int)
+
+	go func() {
+		a, err := strconv.Atoi(input)
+		if err != nil {
+			fmt.Println(err)
+		}
+		a = a * a
+		fC <- a
+	}()
+	return fC
+}
+
+func double(fC int) int {
+	sC := make(chan int)
+	go func() {
+		fC = fC * 2
+		sC <- fC
+	}()
+	return <-sC
 }
