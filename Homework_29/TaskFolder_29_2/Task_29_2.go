@@ -12,29 +12,71 @@
 
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+	"os/signal"
+	"sync"
+	"time"
+)
 
-func main() {
-	// input := bufio.NewScanner(os.Stdin)
+const workersPool = 2
 
-	// fmt.Println("Введите число")
-	// for input.Scan() {
-	// 	a, err := strconv.Atoi(input.Text())
-	// 	if err != nil {
-	// 		fmt.Println(err)
-	// 	}
-	a := sq()
-		select {
-			case <- a
-		}
-	}
+type NaturalNumbers struct {
+	Num int
 }
 
-func sq() {
-	go func(){
-		for i:=1; i<10000000; i++ {
-		i = i*i
-		fmt.Println(i)
-		} 
+func main() {
+	// создаём слайс структуры
+	var row []NaturalNumbers
+	var wg sync.WaitGroup
+
+	// наполняем слайс натуральными числами
+	for i := 1; i < 100; i++ {
+		data := NaturalNumbers{Num: i}
+		row = append(row, data)
+	}
+
+	poolWork(row, &wg)
+
+}
+
+//функция принимает на вход слайс натуральных чисел и вэйт группу
+func poolWork(row []NaturalNumbers, wg *sync.WaitGroup) {
+	// канал для вывода квадратов натуральных чисел
+	ch := make(chan NaturalNumbers, workersPool)
+	// канал для остановки выполнения программы пользователем
+	interruptChan := make(chan os.Signal, 1)
+
+	//цикл запускающий горутины
+	for i := 1; i < workersPool; i++ {
+		wg.Add(1)
+		go func() {
+			// цикл для чтения из канала
+			for data := range ch {
+
+				result := data.Num * data.Num
+
+				signal.Notify(interruptChan, os.Interrupt)
+
+				// в случае заполнения канала для остановки пользователем срабатывает case, иначе default
+				select {
+				case <-interruptChan:
+					close(ch)
+					wg.Done()
+					fmt.Println("Программа завершена")
+					os.Exit(0)
+				// выводим квадраты чисел с небольшой задержкой
+				default:
+					time.Sleep(1000 * time.Millisecond)
+					fmt.Println("Квадрат", result/data.Num, "равен", result)
+				}
+			}
+
+		}()
+	}
+	// цикл для наполнения канала из слайса
+	for i, _ := range row {
+		ch <- row[i]
 	}
 }
