@@ -1,3 +1,5 @@
+// мультиплексор, слушаем сервер
+
 package main
 
 import "net/http"

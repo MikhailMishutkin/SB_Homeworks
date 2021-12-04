@@ -78,21 +78,28 @@ func newStudent(s []string) Student { //принимает строку поль
 }
 
 func main() {
-	var m studStorage // переменная для мапы-хранилища
+	// переменная для мапы-хранилища
+	var m studStorage
 	m = make(studStorage)
 
-	input := bufio.NewScanner(os.Stdin) // показываем каким образом получим значение переменной
-	input.Split(bufio.ScanWords)        // переменная сплитуется сразу после получения значения
-	valueIn := make([]string, 0)        // создаём слайс для значения
+	// показываем каким образом получим значение переменной
+	input := bufio.NewScanner(os.Stdin)
+	// переменная сплитуется сразу после получения значения
+	input.Split(bufio.ScanWords)
+	// создаём слайс для значения
+	valueIn := make([]string, 0)
 
 	for input.Scan() {
 		valueIn = append(valueIn, input.Text()) // складываем в слайс все значения пользовательского ввода
 
 		if len(valueIn) == 3 {
-			p := newStudent(valueIn) //переменная для созданной из пользовательского ввода структуры
+			//переменная для созданной из пользовательского ввода структуры
+			p := newStudent(valueIn)
 			//fmt.Println(p.name)
+			//
 			m.put(p)
-			valueIn = []string{} // обнуляем значение переменной для ввода данных нового студента
+			// обнуляем значение переменной для ввода данных нового студента
+			valueIn = []string{}
 
 		}
 

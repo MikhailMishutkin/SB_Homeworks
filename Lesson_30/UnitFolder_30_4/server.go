@@ -15,7 +15,7 @@ type User struct {
 }
 
 func (u *User) toString() string {
-	return fmt.Sprintf("name os %s and age is %d \n", u.Name, u.Age)
+	return fmt.Sprintf("name is %s and age is %d \n", u.Name, u.Age)
 }
 
 type service struct {
