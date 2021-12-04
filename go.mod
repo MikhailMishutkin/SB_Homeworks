@@ -8,5 +8,4 @@ require (
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible // indirect
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0 // indirect
 	github.com/golangci/golangci-lint v1.43.0 // indirect
-	golang.org/x/tools v0.1.7 // indirect
 )
