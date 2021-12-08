@@ -22,7 +22,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net"
@@ -40,63 +39,18 @@ const (
 )
 
 var userID int
-var usersStorage UserStorage
+var usersStorage structs.UserStorage
 var friends []string
 
-type User struct {
-	Name    string
-	Age     string
-	Friends []string
-}
-
-type UserStorage map[int]*User
-
-type handler struct {
-}
-
-type Handler interface {
-	Register(r chi.Router)
-}
-
-func NewHandler() Handler {
-	return &handler{}
-}
-
-func (h *handler) Register(r chi.Router) {
-	r.Post("/create", h.NewUserProfile)     // 201, 4хх, Header Location: url
-	r.Get(friendsListURL, h.GetFriendsList) // 200, 404, 500
-	r.Post("/make_friends", h.MakeFriends)  // 200
-	r.Delete(usersURL, h.DeleteUserProfile) //200/204
-	r.Put(userURL, h.UpdateAge)             // 200, 4xx, 500
-}
-
-func (m UserStorage) get() { //метод для вызова содержимого мапы
-	//fmt.Println("Студенты из хранилища:")
-	for k, v := range m {
-		fmt.Printf("id: %v %v\n", k, v)
-	}
-}
-
-func (m UserStorage) put(strt User, uuid int) UserStorage { // пишем метод для записи в мапу
-	m[uuid] = &strt
-
-	return m
-}
-
-func newUser(s []string) User { //принимает строку пользовательского ввода, возвращает структуру
-	var ns User // новый юзер структура
-	ns = User{s[1], s[3], friends}
-	return ns
-}
 func (h *handler) NewUserProfile(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
+
 		// инкремент ID
 		userID++
 		// переменная для вывода в теле ответа
 		id := strconv.Itoa(userID)
-		// мапа для записи нового пользователя
-		m := make(UserStorage)
+
 		//массив для создания мапы
 		friends = make([]string, 0)
 
@@ -110,15 +64,12 @@ func (h *handler) NewUserProfile(w http.ResponseWriter, r *http.Request) {
 		splittedContent := strings.Split(string(content), " ")
 		k := newUser(splittedContent)
 		// заполняем мапу
-		m.put(k, userID)
+		usersStorage.put(k, userID)
 		w.WriteHeader(http.StatusCreated)
 		// лог в консоль
 		log.Println("userID is ", userID)
 		//тело http ответа
 		w.Write([]byte("User was created with ID = " + id))
-
-		usersStorage = m
-
 		//log.Println()
 		return
 	}
@@ -168,9 +119,9 @@ func main() {
 	r := chi.NewRouter()
 	handler := NewHandler()
 	handler.Register(r)
-	//r.Get("/", IndexHandler) //func(w http.ResponseWriter, r *http.Request) {
-	// 	w.Write([]byte("hi"))
-	// })
+
+	// открываем мапу для записи
+	usersStorage = make(UserStorage)
 
 	lis, err := net.Listen("tcp4", "localhost:8080")
 	if err != nil {
@@ -182,7 +133,5 @@ func main() {
 		Handler: r,
 	}
 	log.Fatalln(server.Serve(lis))
-
-	usersStorage.get()
 
 }
