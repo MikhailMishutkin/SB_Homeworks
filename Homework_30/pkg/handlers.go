@@ -4,8 +4,10 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"regexp"
 
 	"github.com/go-chi/chi/v5"
+	validation "github.com/go-ozzo/ozzo-validation"
 
 	"strconv"
 	"strings"
@@ -15,9 +17,9 @@ var userID int
 var UStorage UserStorage
 
 const (
-	usersURL       = "/users" //?
-	userURL        = "/users/:id"
-	friendsListURL = "/friends/user_id"
+	userURL        = "/user" //?
+	userIdURL      = "/{user_id}"
+	friendsListURL = "/friends/{user_id}"
 )
 
 type handler struct {
@@ -35,9 +37,17 @@ func (h *handler) Register(r chi.Router) {
 	r.Post("/create", h.NewUserProfile)     // 201, 4хх, Header Location: url
 	r.Get(friendsListURL, h.GetFriendsList) // 200, 404, 500
 	r.Post("/make_friends", h.MakeFriends)  // 200
-	r.Delete(usersURL, h.DeleteUserProfile) //200/204
-	r.Put(userURL, h.UpdateAge)             // 200, 4xx, 500
+	r.Delete(userURL, h.DeleteUserProfile)  //200/204
+	r.Put(userIdURL, h.UpdateAge)           // 200, 4xx, 500
 }
+
+//1. Сделайте обработчик создания пользователя. У пользователя должны быть следующие поля: имя, возраст и массив друзей.
+// Пользователя необходимо сохранять в мапу. Пример запроса:
+// POST /create HTTP/1.1
+// Content-Type: application/json; charset=utf-8
+// Host: localhost:8080
+// {"name":"some name","age":"24","friends":[]}
+// Данный запрос должен возвращать ID пользователя и статус 201
 
 func (h *handler) NewUserProfile(w http.ResponseWriter, r *http.Request) {
 
@@ -77,7 +87,6 @@ func (h *handler) NewUserProfile(w http.ResponseWriter, r *http.Request) {
 // 2. Сделайте обработчик, который делает друзей из двух пользователей. Например, если мы создали двух пользователей
 // и нам вернулись их ID, то в запросе мы можем указать ID пользователя, который инициировал запрос на дружбу, и ID пользователя,
 //  который примет инициатора в друзья. Пример запроса:
-
 // POST /make_friends HTTP/1.1
 // Content-Type: application/json; charset=utf-8
 // Host: localhost:8080
@@ -117,14 +126,8 @@ func (h *handler) MakeFriends(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusBadRequest)
 }
 
-func (h *handler) GetFriendsList(w http.ResponseWriter, r *http.Request) {
-	UStorage.get()
-	w.Write([]byte("this is list of users"))
-}
-
 /* 3. Сделайте обработчик, который удаляет пользователя. Данный обработчик принимает ID пользователя и удаляет его из хранилища,
  а также стирает его из массива friends у всех его друзей. Пример запроса:
-
 DELETE /user HTTP/1.1
 Content-Type: application/json; charset=utf-8
 Host: localhost:8080
@@ -156,6 +159,80 @@ func (h *handler) DeleteUserProfile(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusBadRequest)
 }
 
+/* 4. Сделайте обработчик, который возвращает всех друзей пользователя. Пример запроса:
+GET /friends/user_id HTTP/1.1
+Host: localhost:8080
+Connection: close
+После /friends/ указывается id пользователя, друзей которого мы хотим увидеть. */
+
+func (h *handler) GetFriendsList(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		user_idstr := chi.URLParam(r, "user_id")
+
+		if errs := validation.Validate(user_idstr, validation.Required, validation.Match(regexp.MustCompile(`^\d+$`))); errs != nil {
+
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(string(errs.Error())))
+			return
+		}
+		user_idint, err := strconv.Atoi(user_idstr)
+		if err != nil {
+			log.Println(err)
+		}
+
+		a := strings.Join(UStorage.getFN(user_idint), ", ")
+
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte("В друзьях: " + a))
+		return
+
+	}
+	w.WriteHeader(http.StatusBadRequest)
+}
+
+// 5. Сделайте обработчик, который обновляет возраст пользователя. Пример запроса:
+// PUT /user_id HTTP/1.1
+// Content-Type: application/json; charset=utf-8
+// Host: localhost:8080
+// {"new age":"28"}
+// Запрос должен возвращать 200 и сообщение «возраст пользователя успешно обновлён».
+
 func (h *handler) UpdateAge(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("this is update user age"))
+	if r.Method == "PUT" {
+		user_idstr := chi.URLParam(r, "user_id")
+
+		if errs := validation.Validate(user_idstr, validation.Required, validation.Match(regexp.MustCompile(`^\d+$`))); errs != nil {
+
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(string(errs.Error())))
+			return
+		}
+		user_idint, err := strconv.Atoi(user_idstr)
+		if err != nil {
+			log.Println(err)
+		}
+
+		content, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+		}
+		splittedContent := strings.Split(string(content), " ")
+		log.Println(splittedContent[1])
+		nAge, err := strconv.Atoi(splittedContent[1])
+		if err != nil {
+			log.Println(err)
+		}
+
+		UStorage.updateUserAge(user_idint, nAge)
+
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte("возраст пользователя успешно обновлён: " + UStorage[user_idint].Age))
+		return
+
+	}
+	w.WriteHeader(http.StatusBadRequest)
+
 }

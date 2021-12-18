@@ -8,6 +8,7 @@
 // Host: localhost:8080
 // {"name":"some name","age":"24","friends":[]}
 // Данный запрос должен возвращать ID пользователя и статус 201
+// далее в pkg/handlers.go
 
 package main
 
