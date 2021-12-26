@@ -158,21 +158,7 @@ func (h *handler) MakeFriends(w http.ResponseWriter, r *http.Request) {
 		u3 = UStorage.putFriend(u2, u1)
 
 		jsonMarshToFile(u3)
-		/* j, err := json.Marshal(u3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f, err := os.OpenFile("userstr.txt", os.O_RDWR, 0666)
-		if err != nil {
-			log.Println(err)
-		}
-		defer f.Close()
 
-		_, err = f.Write(j)
-		if err != nil {
-			log.Println(err)
-		} */
 		UStorage.get() // проверка записи в слайсы friends
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -209,22 +195,7 @@ func (h *handler) DeleteUserProfile(w http.ResponseWriter, r *http.Request) {
 		UStorage.delete(user)
 
 		jsonMarshToFile(UStorage)
-		/* 	u1 := UStorage
-		j, err := json.Marshal(u1)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f, err := os.Open("userstr.txt")
-		if err != nil {
-			log.Println(err)
-		}
-		defer f.Close()
 
-		_, err = f.Write(j)
-		if err != nil {
-			log.Println(err)
-		} */
 		UStorage.get() // проверка записи в слайсы friends
 
 		w.WriteHeader(http.StatusOK)
@@ -306,22 +277,7 @@ func (h *handler) UpdateAge(w http.ResponseWriter, r *http.Request) {
 		UStorage.updateUserAge(user_idint, nAge)
 
 		jsonMarshToFile(UStorage)
-		/* 	u1 := UStorage
-		j, err := json.Marshal(u1)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f, err := os.Open("userstr.txt")
-		if err != nil {
-			log.Println(err)
-		}
-		defer f.Close()
 
-		_, err = f.Write(j)
-		if err != nil {
-			log.Println(err)
-		} */
 		UStorage.get() // проверка записи в слайсы friends
 
 		w.WriteHeader(http.StatusOK)
