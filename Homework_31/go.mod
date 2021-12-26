@@ -1,4 +1,4 @@
-module task30
+module task31
 
 go 1.17
 
