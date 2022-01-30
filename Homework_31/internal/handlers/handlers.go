@@ -8,16 +8,18 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"task31/internal/service"
+	"task31/internal/storage"
 
 	"github.com/go-chi/chi/v5"
 	validation "github.com/go-ozzo/ozzo-validation"
+	"golang.org/x/mod/sumdb/storage"
 
 	"strconv"
 	"strings"
 )
 
 var userID int
-var UStorage UserStorage
 
 const (
 	userURL        = "/user" //?
@@ -44,25 +46,6 @@ func (h *handler) Register(r chi.Router) {
 	r.Put(userIdURL, h.UpdateAge)           // 200, 4xx, 500
 }
 
-func jsonMarshToFile(u UserStorage) {
-	u1 := UStorage
-	j, err := json.Marshal(u1)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	f, err := os.OpenFile("userstr.txt", os.O_RDWR, 0666)
-	if err != nil {
-		log.Println(err)
-	}
-	defer f.Close()
-
-	_, err = f.Write(j)
-	if err != nil {
-		log.Println(err)
-	}
-}
-
 //1. Сделайте обработчик создания пользователя. У пользователя должны быть следующие поля: имя, возраст и массив друзей.
 // Пользователя необходимо сохранять в мапу. Пример запроса:
 // POST /create HTTP/1.1
@@ -81,7 +64,7 @@ func (h *handler) NewUserProfile(w http.ResponseWriter, r *http.Request) {
 		id := strconv.Itoa(userID)
 
 		//массив для создания мапы
-		friends = make([]string, 0)
+		storage.Friends = make([]string, 0)
 
 		// читаем из тела запроса
 		content, err := ioutil.ReadAll(r.Body)
@@ -91,9 +74,7 @@ func (h *handler) NewUserProfile(w http.ResponseWriter, r *http.Request) {
 		}
 		// нарезаем в слайс прочитанный контент
 		splittedContent := strings.Split(string(content), " ")
-		k := newUser(splittedContent)
-		// заполняем мапу
-		u := UStorage.put(k, userID)
+		toStrt := service.NewUser(splittedContent)
 		j, err := json.Marshal(u)
 		if err != nil {
 			fmt.Println(err)
@@ -154,9 +135,6 @@ func (h *handler) MakeFriends(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 
-		u3 := UStorage.putFriend(u1, u2)
-		u3 = UStorage.putFriend(u2, u1)
-
 		jsonMarshToFile(u3)
 
 		UStorage.get() // проверка записи в слайсы friends
@@ -215,20 +193,20 @@ Connection: close
 
 func (h *handler) GetFriendsList(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		user_idstr := chi.URLParam(r, "user_id")
+		user_idStr := chi.URLParam(r, "user_id")
 
-		if errs := validation.Validate(user_idstr, validation.Required, validation.Match(regexp.MustCompile(`^\d+$`))); errs != nil {
+		if errs := validation.Validate(user_idStr, validation.Required, validation.Match(regexp.MustCompile(`^\d+$`))); errs != nil {
 
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(string(errs.Error())))
 			return
 		}
-		user_idint, err := strconv.Atoi(user_idstr)
+		user_idInt, err := strconv.Atoi(user_idStr)
 		if err != nil {
 			log.Println(err)
 		}
 
-		a := strings.Join(UStorage.getFN(user_idint), ", ")
+		a := strings.Join(UStorage.getFN(user_idInt), ", ")
 
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
