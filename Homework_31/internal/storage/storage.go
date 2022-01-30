@@ -1,67 +1,83 @@
 package storage
 
 import (
+	"context"
+	"log"
+	"strconv"
 	"task31/internal/model"
 )
 
+//здесь будет описано взаимодействие с БД
 var Friends []string
-var UStorage UserStorage
 
-type UserStorage map[int]*model.User
+type storage struct{}
 
-/* //метод для вызова содержимого мапы
-func (m UserStorage) get() {
-	for k, v := range m {
+//метод для вызова содержимого хранилища
+func (m storage) GetAll(ctx context.Context) {
+	/* for k, v := range m.UserStorage {
 		fmt.Printf("id: %v %v\n", k, v)
-	}
-} */
+	} */
+}
 
-/* //метод извлечения имени пользователя по id
-func (m UserStorage) getName(user_id int) string {
-	v := m[user_id]
+//метод извлечения имени пользователя по id
+func (m storage) GetName(ctx context.Context, user_id int) string {
+	//v := m.model.User[user_id]
 
 	return v.Name
-} */
+}
 
-/* // метод для записи в мапу пользователя по id
-func (m UserStorage) put(strt model.User, user_id int) UserStorage {
-	m[user_id] = &strt
-	// заполняем мапу!!!!!
-	u := UStorage.put(k, userID)
-	return m
-} */
+// метод для записи в мапу пользователя по id
+func (m storage) PutInto(ctx context.Context, strt model.User, user_id int) {
+	//m.UserStorage[user_id] = &strt
+}
 
-/* // метод добавления в друзья: на вход id юзера которому надо добавить в друзья и id второго, которого надо добавить первому
-func (m UserStorage) putFriend(user_id1 int, user_id2 int) UserStorage {
+// метод добавления в друзья: на вход id юзера которому надо добавить в друзья и id второго, которого надо добавить первому
+func (m storage) PutFriends(ctx context.Context, user_id1 int, user_id2 int) {
 
 	var a []string
 	ui2 := strconv.Itoa(user_id2)
 
 	// записываем в промежуточный слайс значение friends по id
-	a = m[user_id1].Friends
+	a = m.UserStorage[user_id1].Friends
 
 	// добавляем нового друга
 	a = append(a, ui2)
 
 	// возвращаем в хранилище с изменениями
-	m[user_id1].Friends = a
-	// взял из handler MakeFriends task 30
-	u3 := UStorage.putFriend(u1, u2)
-	u3 = UStorage.putFriend(u2, u1)
+	m.UserStorage[user_id1].Friends = a
+}
 
-	return m
-} */
+//метод получения имён всех друзей
+func (m storage) GetFNs(ctx context.Context, user_id int) []string {
+	var c []string
+	for i := 0; i < len(m.UserStorage[user_id].Friends); i++ {
+		a := m.UserStorage[user_id].Friends[i]
+		b, err := strconv.Atoi(a)
+		if err != nil {
+			log.Println(err)
+		}
 
-/* // метод удаления пользователя, по user_id удаляем самого пользователя и id из Friends друзей
-func (m UserStorage) delete(user_id int) {
+		c = append(c, m.GetName(ctx, b))
+	}
+	return c
+}
+
+//метод для обновления возраста пользователя
+func (m storage) UpdateUserAge(ctx context.Context, user_id int, newAge int) {
+	a := strconv.Itoa(newAge)
+	m.UserStorage[user_id].Age = a
+}
+
+// метод удаления пользователя, по user_id удаляем самого пользователя и id из Friends друзей
+func (m storage) Delete(ctx context.Context, user_id int) {
 	// проходим по значению id друзей в самом пользователе
-	for _, v := range m[user_id].Friends {
+	for _, v := range m.UserStorage[user_id].Friends {
 		vInt, err := strconv.Atoi(v)
 		if err != nil {
 			log.Println(err)
 		}
 		//записываем в переменную слайс друзей друга
-		a := m[vInt].Friends
+		a := m.UserStorage[vInt].Friends
 		// удаляем id из слайса друзей друга по индекс
 		for i, v := range a {
 			vInt, err := strconv.Atoi(v)
@@ -74,29 +90,8 @@ func (m UserStorage) delete(user_id int) {
 				a = a[:len(a)-1]
 			}
 		}
-		m[vInt].Friends = a
+		m.UserStorage[vInt].Friends = a
 	}
 
-	delete(m, user_id)
-} */
-
-/* //метод получения имён всех друзей
-func (m UserStorage) getFN(user_id int) []string {
-	var c []string
-	for i := 0; i < len(m[user_id].Friends); i++ {
-		a := m[user_id].Friends[i]
-		b, err := strconv.Atoi(a)
-		if err != nil {
-			log.Println(err)
-		}
-
-		c = append(c, m.getName(b))
-	}
-	return c
-} */
-
-/* //метод для обновления возраста пользователя
-func (m UserStorage) updateUserAge(user_id int, newAge int) {
-	a := strconv.Itoa(newAge)
-	m[user_id].Age = a
-} */
+	delete(m.UserStorage, user_id)
+}

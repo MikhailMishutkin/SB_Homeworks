@@ -13,7 +13,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	validation "github.com/go-ozzo/ozzo-validation"
-	"golang.org/x/mod/sumdb/storage"
 
 	"strconv"
 	"strings"
@@ -56,53 +55,44 @@ func (h *handler) Register(r chi.Router) {
 
 func (h *handler) NewUserProfile(w http.ResponseWriter, r *http.Request) {
 
-	if r.Method == "POST" {
+	// переменная для вывода в теле ответа
+	id := strconv.Itoa(userID)
 
-		// инкремент ID
-		userID++
-		// переменная для вывода в теле ответа
-		id := strconv.Itoa(userID)
-
-		//массив для создания мапы
-		storage.Friends = make([]string, 0)
-
-		// читаем из тела запроса
-		content, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
-		}
-		// нарезаем в слайс прочитанный контент
-		splittedContent := strings.Split(string(content), " ")
-		toStrt := service.NewUser(splittedContent)
-		j, err := json.Marshal(u)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f, err := os.Create("userstr.txt")
-		if err != nil {
-			log.Println(err)
-		}
-		defer f.Close()
-
-		_, err = f.Write(j)
-		if err != nil {
-			log.Println(err)
-		}
-
-		w.WriteHeader(http.StatusCreated)
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-
-		// лог в консоль
-		log.Println("userID is ", userID)
-		//тело http ответа
-		w.Write([]byte("User was created with ID = " + id))
-		//log.Println()
+	// читаем из тела запроса
+	content, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+	}
+	// нарезаем в слайс прочитанный контент
+	splittedContent := strings.Split(string(content), " ")
+	toStrt := service.NewUser(splittedContent)
+	j, err := json.Marshal(u)
+	if err != nil {
+		fmt.Println(err)
 		return
 	}
+	f, err := os.Create("userstr.txt")
+	if err != nil {
+		log.Println(err)
+	}
+	defer f.Close()
 
-	w.WriteHeader(http.StatusBadRequest)
+	_, err = f.Write(j)
+	if err != nil {
+		log.Println(err)
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+	// лог в консоль
+	log.Println("userID is ", userID)
+	//тело http ответа
+	w.Write([]byte("User was created with ID = " + id))
+	//log.Println()
+	return
+
 }
 
 // 2. Сделайте обработчик, который делает друзей из двух пользователей. Например, если мы создали двух пользователей
@@ -116,36 +106,31 @@ func (h *handler) NewUserProfile(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) MakeFriends(w http.ResponseWriter, r *http.Request) {
 
-	if r.Method == "POST" {
-		content, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
-		}
-
-		splittedContent := strings.Split(string(content), " ")
-		log.Println(splittedContent[1], splittedContent[3])
-		a, b := splittedContent[1], splittedContent[3]
-		u1, err := strconv.Atoi(a)
-		if err != nil {
-			log.Println(err)
-		}
-		u2, err := strconv.Atoi(b)
-		if err != nil {
-			log.Println(err)
-		}
-
-		jsonMarshToFile(u3)
-
-		UStorage.get() // проверка записи в слайсы friends
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.Write([]byte(UStorage.getName(u1) + " и " + UStorage.getName(u2) + " теперь друзья"))
-
-		return
+	content, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
 	}
 
-	w.WriteHeader(http.StatusBadRequest)
+	splittedContent := strings.Split(string(content), " ")
+	log.Println(splittedContent[1], splittedContent[3])
+	a, b := splittedContent[1], splittedContent[3]
+	u1, err := strconv.Atoi(a)
+	if err != nil {
+		log.Println(err)
+	}
+	u2, err := strconv.Atoi(b)
+	if err != nil {
+		log.Println(err)
+	}
+
+	jsonMarshToFile(u3)
+
+	UStorage.get() // проверка записи в слайсы friends
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Write([]byte(UStorage.getName(u1) + " и " + UStorage.getName(u2) + " теперь друзья"))
+
 }
 
 /* 3. Сделайте обработчик, который удаляет пользователя. Данный обработчик принимает ID пользователя и удаляет его из хранилища,
@@ -157,32 +142,27 @@ Host: localhost:8080
 Данный запрос должен возвращать 200 и имя удалённого пользователя. */
 
 func (h *handler) DeleteUserProfile(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "DELETE" {
-		content, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
-		}
-		splittedContent := strings.Split(string(content), " ")
-		log.Println(splittedContent[1])
-		user, err := strconv.Atoi(splittedContent[1])
-		if err != nil {
-			log.Println(err)
-		}
-		name := UStorage.getName(user)
-		UStorage.delete(user)
-
-		jsonMarshToFile(UStorage)
-
-		UStorage.get() // проверка записи в слайсы friends
-
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.Write([]byte("пользователь " + name + " удалён"))
-
-		return
+	content, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
 	}
-	w.WriteHeader(http.StatusBadRequest)
+	splittedContent := strings.Split(string(content), " ")
+	log.Println(splittedContent[1])
+	user, err := strconv.Atoi(splittedContent[1])
+	if err != nil {
+		log.Println(err)
+	}
+	name := UStorage.getName(user)
+	UStorage.delete(user)
+
+	jsonMarshToFile(UStorage)
+
+	UStorage.get() // проверка записи в слайсы friends
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Write([]byte("пользователь " + name + " удалён"))
 }
 
 /* 4. Сделайте обработчик, который возвращает всех друзей пользователя. Пример запроса:
@@ -192,30 +172,27 @@ Connection: close
 После /friends/ указывается id пользователя, друзей которого мы хотим увидеть. */
 
 func (h *handler) GetFriendsList(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "GET" {
-		user_idStr := chi.URLParam(r, "user_id")
 
-		if errs := validation.Validate(user_idStr, validation.Required, validation.Match(regexp.MustCompile(`^\d+$`))); errs != nil {
+	user_idStr := chi.URLParam(r, "user_id")
 
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(string(errs.Error())))
-			return
-		}
-		user_idInt, err := strconv.Atoi(user_idStr)
-		if err != nil {
-			log.Println(err)
-		}
+	if errs := validation.Validate(user_idStr, validation.Required, validation.Match(regexp.MustCompile(`^\d+$`))); errs != nil {
 
-		a := strings.Join(UStorage.getFN(user_idInt), ", ")
-
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.Header().Set("Connection:", "close")
-		w.Write([]byte("В друзьях: " + a))
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(string(errs.Error())))
 		return
-
 	}
-	w.WriteHeader(http.StatusBadRequest)
+	user_idInt, err := strconv.Atoi(user_idStr)
+	if err != nil {
+		log.Println(err)
+	}
+
+	a := strings.Join(UStorage.getFN(user_idInt), ", ")
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("Connection:", "close")
+	w.Write([]byte("В друзьях: " + a))
+	return
 }
 
 // 5. Сделайте обработчик, который обновляет возраст пользователя. Пример запроса:
@@ -226,44 +203,39 @@ func (h *handler) GetFriendsList(w http.ResponseWriter, r *http.Request) {
 // Запрос должен возвращать 200 и сообщение «возраст пользователя успешно обновлён».
 
 func (h *handler) UpdateAge(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "PUT" {
-		user_idstr := chi.URLParam(r, "user_id")
 
-		if errs := validation.Validate(user_idstr, validation.Required, validation.Match(regexp.MustCompile(`^\d+$`))); errs != nil {
+	user_idstr := chi.URLParam(r, "user_id")
 
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(string(errs.Error())))
-			return
-		}
-		user_idint, err := strconv.Atoi(user_idstr)
-		if err != nil {
-			log.Println(err)
-		}
+	if errs := validation.Validate(user_idstr, validation.Required, validation.Match(regexp.MustCompile(`^\d+$`))); errs != nil {
 
-		content, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
-		}
-		splittedContent := strings.Split(string(content), " ")
-		log.Println(splittedContent[1])
-		nAge, err := strconv.Atoi(splittedContent[1])
-		if err != nil {
-			log.Println(err)
-		}
-
-		UStorage.updateUserAge(user_idint, nAge)
-
-		jsonMarshToFile(UStorage)
-
-		UStorage.get() // проверка записи в слайсы friends
-
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.Write([]byte("возраст пользователя успешно обновлён: " + UStorage[user_idint].Age))
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(string(errs.Error())))
 		return
-
 	}
-	w.WriteHeader(http.StatusBadRequest)
+	user_idint, err := strconv.Atoi(user_idstr)
+	if err != nil {
+		log.Println(err)
+	}
 
+	content, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+	}
+	splittedContent := strings.Split(string(content), " ")
+	log.Println(splittedContent[1])
+	nAge, err := strconv.Atoi(splittedContent[1])
+	if err != nil {
+		log.Println(err)
+	}
+
+	UStorage.updateUserAge(user_idint, nAge)
+
+	jsonMarshToFile(UStorage)
+
+	UStorage.get() // проверка записи в слайсы friends
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Write([]byte("возраст пользователя успешно обновлён: " + UStorage[user_idint].Age))
 }

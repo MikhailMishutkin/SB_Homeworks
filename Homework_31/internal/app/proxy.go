@@ -1,8 +1,10 @@
-package main
+package app
 
-import "net/http"
+import (
+	"net/http"
+)
 
-func main() {
+func proxy() {
 	http.HandleFunc("/", handle)
 }
 

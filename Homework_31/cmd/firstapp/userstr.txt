@@ -1,1 +1,0 @@
-{"1":{"Name":"sobak","Age":"21","Friends":["2","4"]},"2":{"Name":"kozya","Age":"55","Friends":["1"]},"4":{"Name":"sede","Age":"3","Friends":["1"]}}

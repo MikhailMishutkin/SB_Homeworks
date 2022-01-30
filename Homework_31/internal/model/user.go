@@ -7,18 +7,22 @@ package model
 //var _ User = &user{}
 
 type User struct {
-	Name    string   `json:"name,omitempty"`
-	Age     string   `json:"age,omitempty"`
-	Friends []string `json:"friends,omitempty"`
+	Id      int      `json:"user_id,omitempty"`
+	Name    string   `json:"name"`
+	Age     string   `json:"age"`
+	Friends []string `json:"friends"`
 }
+
+var idCounter int
 
 /* type User interface {
 } */
 
 //создание пользователя: принимает строку пользовательского ввода, возвращает структуру
 func NewUser(s []string) User {
-
+	idCounter++
 	u := User{
+		Id:      idCounter,
 		Name:    s[1],
 		Age:     s[3],
 		Friends: nil,

@@ -14,16 +14,26 @@ type service struct {
 }
 
 type Service interface {
-	IncrId()
-	Unmarshal()
-	JsonMarshToFile(u storage.UserStorage)
-	JsonMarshToDB(u storage.UserStorage)
-	SplitContent(c []byte)
-	Atoi(a []string) (int, error)
-}
+		GetAll(ctx context.Context)
+		GetName(ctx context.Context, user_id int) string
+		PutInto(ctx context.Context, strt model.User, user_id int)
+		PutFriends(ctx context.Context, user_id1, user_id2 int)
+		GetFNs(ctx context.Context, user_id int) []string
+		UpdateUserAge(ctx context.Context, user_id int, newAge int)
+		Delete(ctx context.Context, user_id int)
+	}
 
-// заполняем мапу!!!!!
-u := UStorage.put(k, userID)
+
+
+
+
+
+
+
+
+
+
+
 
 // взял из handler MakeFriends task 30: записывает в структуру список друзей обоим друзьям
 u3 := UStorage.putFriend(u1, u2)
@@ -31,12 +41,8 @@ u3 = UStorage.putFriend(u2, u1)
 
 //NewUser(splittedContent)
 
-/* func (u *model.User) NewUser(ctx context.Context, s []string) model.User {
-	// новый юзер структура
-	//var u *model.User
-	u = &model.User{s[1], s[3], storage.Friends}
-	return u
-} */
+
+
 
 func (s service) JsonMarshToFile(u storage.UserStorage) {
 	u1 := UStorage
