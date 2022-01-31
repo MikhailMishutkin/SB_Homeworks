@@ -2,6 +2,8 @@ package storage
 
 import (
 	"context"
+	"encoding/json"
+	"log"
 	"task31/internal/model"
 )
 
@@ -10,8 +12,13 @@ import (
 
 type storage struct{}
 
-func (m storage) InsertToDB(u model.User) model.User {
-	return u
+func (m storage) InsertToDB(u model.User) []byte {
+	jsonData, err := json.Marshal(u)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return jsonData
 }
 
 //метод для вызова содержимого хранилища
