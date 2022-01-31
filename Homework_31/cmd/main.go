@@ -1,6 +1,12 @@
 package main
 
+import (
+	"task31/internal/app"
+	mongodb "task31/scripts/client/mongoDB"
+)
+
 func main() {
-	StartApp() //	"task31/internal/app"
+	mongodb.ConnectAndPing()
+	app.StartApp() //	"task31/internal/app"
 
 }

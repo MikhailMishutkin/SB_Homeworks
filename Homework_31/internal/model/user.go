@@ -1,5 +1,10 @@
 package model
 
+import (
+	"encoding/json"
+	"log"
+)
+
 //Содержимое пакета:
 //1. функция newUser(s []string) создания пользователя: принимает строку пользовательского ввода, возвращает структуру
 
@@ -13,19 +18,17 @@ type User struct {
 	Friends []string `json:"friends"`
 }
 
-var idCounter int
-
-/* type User interface {
-} */
+var IdCounter int
 
 //создание пользователя: принимает строку пользовательского ввода, возвращает структуру
-func NewUser(s []string) User {
-	idCounter++
-	u := User{
-		Id:      idCounter,
-		Name:    s[1],
-		Age:     s[3],
-		Friends: nil,
+func NewUser(s []byte) User {
+	IdCounter++
+	var u User
+	err := json.Unmarshal(s, &u)
+	if err != nil {
+		log.Fatal(err)
 	}
+	u.Id = IdCounter
+
 	return u
 }

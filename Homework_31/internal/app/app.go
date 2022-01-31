@@ -4,15 +4,14 @@ import (
 	"log"
 	"net"
 	"net/http"
-
-	pkg "task31/internal"
+	"task31/internal/handlers"
 
 	"github.com/go-chi/chi/v5"
 )
 
 func StartApp() {
 	r := chi.NewRouter()
-	handler := pkg.NewHandler()
+	handler := handlers.NewHandler()
 	handler.Register(r)
 
 	var count int8
